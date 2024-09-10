@@ -99,6 +99,34 @@ def explore():
     'labels' changed from '['red']' to '['red', 'green']'
     Comparing doc one as of 2024-02-01 00:00:00+00:00 to doc one as of 2024-01-01 00:00:00+00:00
     'labels' changed from '[]' to '['red']'
+
+    >>> asof = d.history.as_of(datetime.datetime(2024,3,6,12,23,59).astimezone(datetime.timezone.utc))
+    >>> [hd.label.slug for hd in asof._history.labels.all()]
+    ['red', 'green']
+
+    >>> asof._history.history_date
+    datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc)
+
+    >>> d.labels.remove(Label.objects.get(slug="green"))
+    >>> d.update_history_date(2024,5,1)
+    >>> _ = d.labels.create(slug="brown")
+    >>> d.update_history_date(2024,6,1)
+
+    >>> for h in d.history.all():
+    ...     print(h, ", ".join([dl.label.slug for dl in h.labels.all()]))
+    doc one as of 2024-06-01 00:00:00+00:00 red, blue, brown
+    doc one as of 2024-05-01 00:00:00+00:00 red, blue
+    doc one as of 2024-04-01 00:00:00+00:00 red, green, blue
+    doc one as of 2024-03-01 00:00:00+00:00 red, green
+    doc one as of 2024-02-01 00:00:00+00:00 red
+    doc one as of 2024-01-01 00:00:00+00:00 
+
+    
+    >>> qs = d.history.filter(historicaldocumentlabel__label__slug="green")
+    >>> for h in qs.all():
+    ...     print(f"{h.history_date}: {[dh.label.slug for dh in h.labels.all()]}")
+    2024-04-01 00:00:00+00:00: ['red', 'green', 'blue']
+    2024-03-01 00:00:00+00:00: ['red', 'green']
     """
 
     pass
